@@ -1,9 +1,11 @@
 # https://www.kaggle.com/kenwat/single-lgbm-lb-0-44679-run-time-1687sec
 
+import gc
 import logging
 import re
 import time
 
+import lightgbm as lgbm
 import numpy as np
 import pandas as pd
 from scipy import sparse as ssp
@@ -136,6 +138,46 @@ folds_count = 4
 random_state = 128
 kfold = KFold(n_splits=folds_count, shuffle=True, random_state=random_state)
 
+learning_rate = 0.8
+num_leaves = 128
+min_data_in_leaf = 1000
+feature_fraction = 0.5
+bagging_fraction = 0.9
+bagging_freq = 1000
+num_boost_round = 1000
+params = {
+    "bagging_fraction": bagging_fraction,
+
+    "bagging_freq": bagging_freq,
+    "boosting_type": "gbdt",
+    "feature_fraction": feature_fraction,
+    "learning_rate": learning_rate,
+    "metric": "l2_root",
+    "nthread": 4,
+    "num_leaves": num_leaves,
+    "objective": "regression",
+    "subsample": 0.9,
+    "verbosity": 0,
+}
+
+cv_pred = np.zeros(len(test_id))
+kf = kfold.split(X)
+for i, (train_fold, test_fold) in enumerate(kf):
+    train_t0 = time.time()
+    X_train, X_validate, label_train, label_validate = \
+        X[train_fold, :], X[test_fold, :], train_label[train_fold], train_label[test_fold]
+    dtrain = lgbm.Dataset(X_train, label_train)
+    dvalid = lgbm.Dataset(X_validate, label_validate, reference=dtrain)
+    bst = lgbm.train(params, dtrain, num_boost_round, valid_sets=dvalid, verbose_eval=100, early_stopping_rounds=100)
+    cv_pred += bst.predict(X_test, num_iteration=bst.best_iteration)
+    logger.debug('training & predict time', time.time() - train_t0)
+    gc.collect()
+
+cv_pred /= folds_count
+cv_pred = np.expm1(cv_pred)
+submission = test[["test_id"]]
+submission["price"] = cv_pred
+submission.to_csv("./mercari_submission.csv", index=False)
 
 finish_time = time.time()
 elapsed_hours, elapsed_remainder = divmod(finish_time - start_time, 3600)
