@@ -6,7 +6,11 @@ import time
 
 import numpy as np
 import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer
+from scipy import sparse as ssp
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.model_selection import KFold
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder
 
 start_time = time.time()
 
@@ -100,6 +104,38 @@ count = CountVectorizer(min_df=NAME_MIN_DF)
 X_name_mix = count.fit_transform(train['name'].append(test['name']))
 X_name = X_name_mix[:nrow_train]
 X_t_name = X_name_mix[nrow_train:]
+
+MAX_FEATURES_ITEM_DESCRIPTION = 20000
+tv = TfidfVectorizer(max_features=MAX_FEATURES_ITEM_DESCRIPTION, ngram_range=(1, 3))
+X_description_mix = tv.fit_transform(train['item_description'].append(test['item_description']))
+X_description = X_description_mix[:nrow_train]
+X_t_description = X_description_mix[nrow_train:]
+logger.debug('make categorical features')
+
+cat_features = ['subcat_2', 'subcat_1', 'subcat_0', 'brand_name', 'category_name', 'item_condition_id', 'shipping']
+for feature in cat_features:
+    newlist = train[feature].append(test[feature])
+    le = LabelEncoder()
+    le.fit(newlist)
+    train[feature] = le.transform(train[feature])
+    test[feature] = le.transform(test[feature])
+enc = OneHotEncoder()
+enc.fit(train[cat_features].append(test[cat_features]))
+X_cat = enc.transform(train[cat_features])
+X_t_cat = enc.transform(test[cat_features])
+
+train_feature = ['desc_word_len', 'nm_word_len', 'desc_len', 'nm_len']
+train_list = [train[train_feature].values, X_description, X_name, X_cat]
+test_list = [test[train_feature].values, X_t_description, X_t_name, X_t_cat]
+X = ssp.hstack(train_list).tocsr()
+X_test = ssp.hstack(test_list).tocsr()
+
+logger.debug('finished feature for training')
+
+folds_count = 4
+random_state = 128
+kfold = KFold(n_splits=folds_count, shuffle=True, random_state=random_state)
+
 
 finish_time = time.time()
 elapsed_hours, elapsed_remainder = divmod(finish_time - start_time, 3600)
