@@ -48,3 +48,8 @@ full_test_file = input_folder + test_file
 logger.debug('loading test data from %s' % full_test_file)
 test = pd.read_csv(full_test_file, sep="\t", encoding=encoding, converters=converters)
 logger.debug('test data load complete.')
+
+finish_time = time.time()
+elapsed_hours, elapsed_remainder = divmod(finish_time - start_time, 3600)
+elapsed_minutes, elapsed_seconds = divmod(elapsed_remainder, 60)
+logging.info("Time: {:0>2}:{:0>2}:{:05.2f}".format(int(elapsed_hours), int(elapsed_minutes), elapsed_seconds))
