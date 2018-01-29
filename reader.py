@@ -6,6 +6,7 @@ import time
 
 import numpy as np
 import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
 
 start_time = time.time()
 
@@ -21,6 +22,7 @@ def split_categories(arg_text):
             return category_names[0], 'missing', 'missing'
     except:
         return ("missing", "missing", "missing")
+
 
 # set up logging
 formatter = logging.Formatter('%(asctime)s : %(name)s :: %(levelname)s : %(message)s')
@@ -89,8 +91,17 @@ test_id = test['test_id']
 
 nrow_train = train.shape[0]
 
+train['subcat_0'], train['subcat_1'], train['subcat_2'] = zip(
+    *train['category_name'].apply(lambda x: split_categories(x)))
+test['subcat_0'], test['subcat_1'], test['subcat_2'] = zip(*test['category_name'].apply(lambda x: split_categories(x)))
+
+NAME_MIN_DF = 30
+count = CountVectorizer(min_df=NAME_MIN_DF)
+X_name_mix = count.fit_transform(train['name'].append(test['name']))
+X_name = X_name_mix[:nrow_train]
+X_t_name = X_name_mix[nrow_train:]
 
 finish_time = time.time()
 elapsed_hours, elapsed_remainder = divmod(finish_time - start_time, 3600)
 elapsed_minutes, elapsed_seconds = divmod(elapsed_remainder, 60)
-logging.info("Time: {:0>2}:{:0>2}:{:05.2f}".format(int(elapsed_hours), int(elapsed_minutes), elapsed_seconds))
+logger.info("Time: {:0>2}:{:0>2}:{:05.2f}".format(int(elapsed_hours), int(elapsed_minutes), elapsed_seconds))
