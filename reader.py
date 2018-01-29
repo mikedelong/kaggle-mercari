@@ -4,9 +4,23 @@ import logging
 import re
 import time
 
+import numpy as np
 import pandas as pd
 
 start_time = time.time()
+
+
+def split_categories(arg_text):
+    try:
+        category_names = arg_text.split("/")
+        if len(category_names) >= 3:
+            return category_names[0], category_names[1], category_names[2]
+        if len(category_names) == 2:
+            return category_names[0], category_names[1], 'missing'
+        if len(category_names) == 1:
+            return category_names[0], 'missing', 'missing'
+    except:
+        return ("missing", "missing", "missing")
 
 # set up logging
 formatter = logging.Formatter('%(asctime)s : %(name)s :: %(levelname)s : %(message)s')
@@ -48,6 +62,33 @@ full_test_file = input_folder + test_file
 logger.debug('loading test data from %s' % full_test_file)
 test = pd.read_csv(full_test_file, sep="\t", encoding=encoding, converters=converters)
 logger.debug('test data load complete.')
+
+train_label = np.log1p(train['price'])
+train_texts = train['name'].tolist()
+test_texts = test['name'].tolist()
+
+# replace missing words
+train['category_name'].fillna('other', inplace=True)
+test['category_name'].fillna('other', inplace=True)
+
+train['brand_name'].fillna('missing', inplace=True)
+test['brand_name'].fillna('missing', inplace=True)
+
+test['item_description'].fillna('none', inplace=True)
+train['item_description'].fillna('none', inplace=True)
+
+test['nm_word_len'] = list(map(lambda x: len(x.split()), test_texts))
+train['nm_word_len'] = list(map(lambda x: len(x.split()), train_texts))
+test['desc_word_len'] = list(map(lambda x: len(x.split()), test['item_description'].tolist()))
+train['desc_word_len'] = list(map(lambda x: len(x.split()), train['item_description'].tolist()))
+test['nm_len'] = list(map(lambda x: len(x), test_texts))
+train['nm_len'] = list(map(lambda x: len(x), train_texts))
+test['desc_len'] = list(map(lambda x: len(x), test['item_description'].tolist()))
+train['desc_len'] = list(map(lambda x: len(x), train['item_description'].tolist()))
+test_id = test['test_id']
+
+nrow_train = train.shape[0]
+
 
 finish_time = time.time()
 elapsed_hours, elapsed_remainder = divmod(finish_time - start_time, 3600)
