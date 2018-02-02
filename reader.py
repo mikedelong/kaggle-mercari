@@ -117,14 +117,14 @@ logger.debug('make categorical features')
 cat_features = ['subcat_2', 'subcat_1', 'subcat_0', 'brand_name', 'category_name', 'item_condition_id', 'shipping']
 for feature in cat_features:
     newlist = train[feature].append(test[feature])
-    le = LabelEncoder()
-    le.fit(newlist)
-    train[feature] = le.transform(train[feature])
-    test[feature] = le.transform(test[feature])
-enc = OneHotEncoder()
-enc.fit(train[cat_features].append(test[cat_features]))
-X_cat = enc.transform(train[cat_features])
-X_t_cat = enc.transform(test[cat_features])
+    label_encoder = LabelEncoder()
+    label_encoder.fit(newlist)
+    train[feature] = label_encoder.transform(train[feature])
+    test[feature] = label_encoder.transform(test[feature])
+one_hot_encoder = OneHotEncoder()
+one_hot_encoder.fit(train[cat_features].append(test[cat_features]))
+X_cat = one_hot_encoder.transform(train[cat_features])
+X_t_cat = one_hot_encoder.transform(test[cat_features])
 
 train_feature = ['desc_word_len', 'nm_word_len', 'desc_len', 'nm_len']
 train_list = [train[train_feature].values, X_description, X_name, X_cat]
@@ -147,7 +147,6 @@ bagging_freq = 1000
 num_boost_round = 1000
 params = {
     "bagging_fraction": bagging_fraction,
-
     "bagging_freq": bagging_freq,
     "boosting_type": "gbdt",
     "feature_fraction": feature_fraction,
@@ -157,8 +156,7 @@ params = {
     "num_leaves": num_leaves,
     "objective": "regression",
     "subsample": 0.9,
-    "verbosity": 0,
-}
+    "verbosity": 0}
 
 cv_pred = np.zeros(len(test_id))
 kf = kfold.split(X)
@@ -170,7 +168,7 @@ for i, (train_fold, test_fold) in enumerate(kf):
     dvalid = lgbm.Dataset(X_validate, label_validate, reference=dtrain)
     bst = lgbm.train(params, dtrain, num_boost_round, valid_sets=dvalid, verbose_eval=100, early_stopping_rounds=100)
     cv_pred += bst.predict(X_test, num_iteration=bst.best_iteration)
-    logger.debug('training & predict time', time.time() - train_t0)
+    logger.debug('training & predict time %d', time.time() - train_t0)
     gc.collect()
 
 cv_pred /= folds_count
