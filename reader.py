@@ -41,23 +41,25 @@ console_handler.setLevel(logging.DEBUG)
 logger.debug('started')
 
 # todo sort these and/or move them to an external data file
-stopwords = {'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself',
-             'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself',
-             'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'these',
-             'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do',
-             'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while',
-             'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before',
-             'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again',
-             'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each',
-             'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than',
-             'too', 'very', 's', 't', 'can', 'will', 'just', 'don', 'should', 'now', 'd', 'll', 'm', 'o', 're', 've',
-             'y', 'ain', 'aren', 'couldn', 'didn', 'doesn', 'hadn', 'hasn', 'haven', 'isn', 'ma', 'mightn', 'mustn',
-             'needn', 'shan', 'shouldn', 'wasn', 'weren', 'won', 'wouldn', '&', 'brand new', 'new', '[rm]',
-             'free ship.*?', 'rm', 'price firm', 'no description yet'}
 
+stopwords = {'&', '[rm]', 'a', 'about', 'above', 'after', 'again', 'against', 'ain', 'all', 'am', 'an', 'and', 'any',
+             'are', 'aren', 'as', 'at', 'be', 'because', 'been', 'before', 'being', 'below', 'between', 'both',
+             'brand new', 'but', 'by', 'can', 'couldn', 'd', 'did', 'didn', 'do', 'does', 'doesn', 'doing', 'don',
+             'down', 'during', 'each', 'few', 'for', 'free ship.*?', 'from', 'further', 'had', 'hadn', 'has', 'hasn',
+             'have', 'haven', 'having', 'he', 'her', 'here', 'hers', 'herself', 'him', 'himself', 'his', 'how', 'i',
+             'if', 'in', 'into', 'is', 'isn', 'it', 'its', 'itself', 'just', 'll', 'm', 'ma', 'me', 'mightn', 'more',
+             'most', 'mustn', 'my', 'myself', 'needn', 'new', 'no', 'no description yet', 'nor', 'not', 'now', 'o',
+             'of', 'off', 'on', 'once', 'only', 'or', 'other', 'our', 'ours', 'ourselves', 'out', 'over', 'own',
+             'price firm', 're', 'rm', 's', 'same', 'shan', 'she', 'should', 'shouldn', 'so', 'some', 'such', 't',
+             'than', 'that', 'the', 'their', 'theirs', 'them', 'themselves', 'then', 'there', 'these', 'they', 'this',
+             'those', 'through', 'to', 'too', 'under', 'until', 'up', 've', 'very', 'was', 'wasn', 'we', 'were',
+             'weren', 'what', 'when', 'where', 'which', 'while', 'who', 'whom', 'why', 'will', 'with', 'won', 'wouldn',
+             'y', 'you', 'your', 'yours', 'yourself', 'yourselves'}
+
+logger.debug(sorted(stopwords))
 pattern = re.compile(r'\b(' + r'|'.join(stopwords) + r')\b\s*')
 
-input_folder = './input/'
+input_folder = '../input/'
 train_file = 'train.tsv'
 full_train_file = input_folder + train_file
 converters = {'item_description': lambda x: pattern.sub('', x.lower()), 'name': lambda x: pattern.sub('', x.lower())}
@@ -72,8 +74,11 @@ test = pd.read_csv(full_test_file, sep="\t", encoding=encoding, converters=conve
 logger.debug('test data load complete.')
 
 train_label = np.log1p(train['price'])
+logger.debug('got train labels')
 train_texts = train['name'].tolist()
+logger.debug('got train names')
 test_texts = test['name'].tolist()
+logger.debug('got test names')
 
 # replace missing words
 train['category_name'].fillna('other', inplace=True)
@@ -84,6 +89,7 @@ test['brand_name'].fillna('missing', inplace=True)
 
 test['item_description'].fillna('none', inplace=True)
 train['item_description'].fillna('none', inplace=True)
+logger.debug('filled in missing data with -none-')
 
 test['nm_word_len'] = list(map(lambda x: len(x.split()), test_texts))
 train['nm_word_len'] = list(map(lambda x: len(x.split()), train_texts))
@@ -135,7 +141,7 @@ X_test = ssp.hstack(test_list).tocsr()
 logger.debug('finished feature for training')
 
 folds_count = 4
-random_state = 128
+random_state = 2  # was 128
 kfold = KFold(n_splits=folds_count, shuffle=True, random_state=random_state)
 
 learning_rate = 0.8
@@ -155,15 +161,15 @@ params = {
     "nthread": 4,
     "num_leaves": num_leaves,
     "objective": "regression",
-    "subsample": 0.9,
-    "verbosity": 0}
+    # "subsample": 0.8, # was 0.9
+    "verbosity": 1}
 
 cv_pred = np.zeros(len(test_id))
 kf = kfold.split(X)
 for i, (train_fold, test_fold) in enumerate(kf):
     train_t0 = time.time()
-    X_train, X_validate, label_train, label_validate = \
-        X[train_fold, :], X[test_fold, :], train_label[train_fold], train_label[test_fold]
+    X_train, X_validate, label_train, label_validate = X[train_fold, :], X[test_fold, :], train_label[train_fold], \
+                                                       train_label[test_fold]
     dtrain = lgbm.Dataset(X_train, label_train)
     dvalid = lgbm.Dataset(X_validate, label_validate, reference=dtrain)
     bst = lgbm.train(params, dtrain, num_boost_round, valid_sets=dvalid, verbose_eval=100, early_stopping_rounds=100)
