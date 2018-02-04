@@ -176,6 +176,7 @@ for i, (train_fold, test_fold) in enumerate(kf):
     bst = lgbm.train(params, dtrain, num_boost_round, valid_sets=dvalid, verbose_eval=100, early_stopping_rounds=100)
     cv_pred += bst.predict(X_test, num_iteration=bst.best_iteration)
     logger.debug('training & predict time %d', time.time() - train_t0)
+    lgbm.plot_importance(bst)
     gc.collect()
 
 cv_pred /= folds_count
