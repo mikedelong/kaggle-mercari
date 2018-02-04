@@ -59,7 +59,8 @@ stopwords = {'&', '[rm]', 'a', 'about', 'above', 'after', 'again', 'against', 'a
 logger.debug(sorted(stopwords))
 pattern = re.compile(r'\b(' + r'|'.join(stopwords) + r')\b\s*')
 
-input_folder = '../input/'
+# todo move this to a settings file
+input_folder = './input/'
 train_file = 'train.tsv'
 full_train_file = input_folder + train_file
 converters = {'item_description': lambda x: pattern.sub('', x.lower()), 'name': lambda x: pattern.sub('', x.lower())}
