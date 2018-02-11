@@ -43,6 +43,7 @@ encoding = 'utf-8'
 train = pd.read_csv(full_train_file, sep="\t", encoding=encoding, converters=converters)
 logger.debug('training data load complete.')
 logger.debug('training data has %d columns and %d rows' % (train.shape))
+logger.debug('training data has columns %s' % train.columns)
 
 finish_time = time.time()
 elapsed_hours, elapsed_remainder = divmod(finish_time - start_time, 3600)
