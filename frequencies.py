@@ -46,11 +46,6 @@ logger.debug('training data load complete.')
 logger.debug('training data has %d columns and %d rows' % train.shape)
 logger.debug('training data has columns %s' % train.columns)
 
-if False:
-    min_df = 3000
-    name_vectorizer = TfidfVectorizer(min_df=min_df)
-    name_vectorizer_model = name_vectorizer.fit(train['name'])
-
 max_df = 20000
 description_vectorizer = TfidfVectorizer(max_features=max_df, ngram_range=(1, 3))
 description_model = description_vectorizer.fit(train['item_description'])
@@ -60,12 +55,12 @@ description_stopwords = description_model.stop_words_
 logger.debug('with max_df = %d we have %d words in the vocabulary and %d stopwords.' %
              (max_df, len(description_vocabulary), len(description_stopwords)))
 
-idf = description_model.idf_
+description_idf = description_model.idf_
 
-logger.debug('%.3f %.3f' % (idf.min(), idf.max()))
-logger.debug(pd.Series(idf).describe())
+logger.debug('%.3f %.3f' % (description_idf.min(), description_idf.max()))
+logger.debug(pd.Series(description_idf).describe())
 
-sorted_terms = [item for item in sorted(zip(idf, description_vocabulary.keys()), reverse=True)]
+sorted_terms = [item for item in sorted(zip(description_idf, description_vocabulary.keys()), reverse=True)]
 for item in sorted_terms[:10]:
     logger.debug(item)
 
