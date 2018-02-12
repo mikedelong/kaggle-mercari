@@ -55,7 +55,7 @@ vectorizer_stopwords = vectorizer_fit.stop_words_
 logger.debug('with min_df = %d we have %d words in the vocabulary and %d stopwords.' %
              (min_df, len(vocabulary), len(vectorizer_stopwords)))
 
-
+logger.debug('done')
 finish_time = time.time()
 elapsed_hours, elapsed_remainder = divmod(finish_time - start_time, 3600)
 elapsed_minutes, elapsed_seconds = divmod(elapsed_remainder, 60)
