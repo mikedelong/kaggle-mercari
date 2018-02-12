@@ -55,6 +55,15 @@ vectorizer_stopwords = vectorizer_fit.stop_words_
 logger.debug('with min_df = %d we have %d words in the vocabulary and %d stopwords.' %
              (min_df, len(vocabulary), len(vectorizer_stopwords)))
 
+idf = vectorizer.idf_
+
+logger.debug('%.3f %.3f' % (idf.min(), idf.max()))
+logger.debug(pd.Series(idf).describe())
+
+sorted_terms = [item for item in sorted(zip(idf, vocabulary.keys()), reverse=True)]
+for item in sorted_terms[:10]:
+    logger.debug(item)
+
 finish_time = time.time()
 elapsed_hours, elapsed_remainder = divmod(finish_time - start_time, 3600)
 elapsed_minutes, elapsed_seconds = divmod(elapsed_remainder, 60)
