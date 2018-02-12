@@ -9,7 +9,8 @@ import lightgbm as lgbm
 import numpy as np
 import pandas as pd
 from scipy import sparse as ssp
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
