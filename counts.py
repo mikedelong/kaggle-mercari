@@ -43,7 +43,7 @@ logger.debug('loading training data from %s' % full_train_file)
 encoding = 'utf-8'
 train = pd.read_csv(full_train_file, sep="\t", encoding=encoding, converters=converters)
 logger.debug('training data load complete.')
-logger.debug('training data has %d columns and %d rows' % (train.shape))
+logger.debug('training data has %d columns and %d rows' % train.shape)
 logger.debug('training data has columns %s' % train.columns)
 
 min_df = 3000
