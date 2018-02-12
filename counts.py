@@ -3,6 +3,7 @@ import re
 import time
 
 import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
 
 start_time = time.time()
 
@@ -44,6 +45,16 @@ train = pd.read_csv(full_train_file, sep="\t", encoding=encoding, converters=con
 logger.debug('training data load complete.')
 logger.debug('training data has %d columns and %d rows' % (train.shape))
 logger.debug('training data has columns %s' % train.columns)
+
+min_df = 3000
+count_vectorizer = CountVectorizer(min_df=min_df)
+vectorizer_fit = count_vectorizer.fit(train['name'])
+
+vocabulary = vectorizer_fit.vocabulary_
+vectorizer_stopwords = vectorizer_fit.stop_words_
+logger.debug('with min_df = %d we have %d words in the vocabulary and %d stopwords.' %
+             (min_df, len(vocabulary), len(vectorizer_stopwords)))
+
 
 finish_time = time.time()
 elapsed_hours, elapsed_remainder = divmod(finish_time - start_time, 3600)
