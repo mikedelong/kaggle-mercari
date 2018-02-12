@@ -47,8 +47,8 @@ logger.debug('training data has %d columns and %d rows' % train.shape)
 logger.debug('training data has columns %s' % train.columns)
 
 min_df = 3000
-count_vectorizer = CountVectorizer(min_df=min_df)
-vectorizer_fit = count_vectorizer.fit(train['name'])
+vectorizer = CountVectorizer(min_df=min_df)
+vectorizer_fit = vectorizer.fit(train['name'])
 
 vocabulary = vectorizer_fit.vocabulary_
 vectorizer_stopwords = vectorizer_fit.stop_words_
